@@ -227,7 +227,7 @@ class MsfRpcClient(object):
 
     @retry(tries=3, delay=1, backoff=2)
     def post_request(self, url, payload):
-        return requests.post(url, data=payload, headers=self.headers, verify=False)
+        return requests.post(url, data=payload, headers=self.headers, verify=False, timeout=60)
 
     def login(self, user, password):
         auth = self.call(MsfRpcMethod.AuthLogin, [user, password])
@@ -1264,6 +1264,10 @@ class MsfModule(object):
                 # don't try to set property attributes
                 setattr(self, k, self._info.get(k))
         self._moptions = rpc.call(MsfRpcMethod.ModuleOptions, [mtype, mname])
+        if 'error' in self._moptions.keys():
+            if self._moptions['error'] == True:
+                raise ValueError
+                pass
         self._roptions = []
         self._aoptions = []
         self._eoptions = []
